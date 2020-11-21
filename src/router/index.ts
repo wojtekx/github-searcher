@@ -3,6 +3,10 @@ import VueRouter, { RouteConfig } from 'vue-router'
 import Home from '../views/Home.vue'
 import Commits from '../views/Commits.vue'
 import User from '../views/User.vue'
+import { BootstrapVue }  from 'bootstrap-vue'
+import 'bootstrap/dist/css/bootstrap.css'
+import 'bootstrap-vue/dist/bootstrap-vue.css'
+Vue.use(BootstrapVue)
 
 Vue.use(VueRouter)
 

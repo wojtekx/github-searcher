@@ -68,67 +68,72 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { Component, Prop, Vue, Watch, Emit } from "vue-property-decorator";
 import axios from "axios";
-export default {
-  data() {
-    return {
-      commits: [],
-      contributors: [],
-      per_page: 4,
-      pageOptions: [
-        { text: "4", value: 4 },
-        { text: "8", value: 8 },
-        { text: "12", value: 12 },
-        { text: "16", value: 16 },
-      ],
-      order: "desc",
-      orderOptions: [
-        { text: "desc", value: "desc" },
-        { text: "asc", value: "asc" },
-      ],
-    };
-  },
-  watch: {
-    per_page() {
-      this.fetchCommits();
-      this.fetchContributors();
-    },
-  },
-  methods: {
-    async fetchCommits() {
-      const repoOwner = this.$route.params.repoOwner;
-      const repoName = this.$route.params.repoName;
-      if (!repoOwner || !repoName) this.$router.push({ path: "/" });
-      try {
-        const { data } = await axios.get(
-          `https://api.github.com/repos/${repoOwner}/${repoName}/commits?sha=master&per_page=${this.per_page}`
-        );
-        this.commits = data;
-        
-      } catch (err) {
-        console.log(err);
-      }
-    },
-    async fetchContributors() {
-      const repoOwner = this.$route.params.repoOwner;
-      const repoName = this.$route.params.repoName;
-      if (!repoOwner || !repoName) this.$router.push({ path: "/" });
-      try {
-        const { data } = await axios.get(
-          `https://api.github.com/repos/${repoOwner}/${repoName}/contributors?per_page=${this.per_page}`
-        );
-        this.contributors = data;
-
-      } catch (err) {
-        console.log(err);
-      }
-    },
-  },
+ 
+type OrderOptions = 'desc' | 'asc';
+type Opt<V = number> = { text: string, value: V }
+@Component
+export default class Commits extends Vue {
+  private commits: any[] = [];
+  private contributors: any[] = [];
+  private per_page: number = 4;
+  private pageOptions: Opt[] = [
+    { text: "4", value: 4 },
+    { text: "8", value: 8 },
+    { text: "12", value: 12 },
+    { text: "16", value: 16 },
+  ];
+  private order: OrderOptions = "desc";
+  private orderOptions: Opt<OrderOptions>[] = [
+    { text: "desc", value: "desc" },
+    { text: "asc", value: "asc" },
+  ]
+ 
+  @Watch('per_page')
+  perPageChanged(): void {
+    this.fetchCommits();
+    this.fetchContributors();
+  }
+ 
+  @Emit()
+  async fetchCommits(): Promise<void> {
+    const repoOwner = this.$route.params.repoOwner;
+    const repoName = this.$route.params.repoName;
+    if (!repoOwner || !repoName) this.$router.push({ path: "/" });
+    try {
+      const { data } = await axios.get(
+              `https://api.github.com/repos/${repoOwner}/${repoName}/commits?sha=master&per_page=${this.per_page}`
+      );
+      this.commits = data;
+      console.log('commits',data)
+    } catch (err) {
+      console.log(err);
+    }
+  }
+ 
+  @Emit()
+  async fetchContributors() {
+    const repoOwner = this.$route.params.repoOwner;
+    const repoName = this.$route.params.repoName;
+    if (!repoOwner || !repoName) this.$router.push({ path: "/" });
+    try {
+      const { data } = await axios.get(
+              `https://api.github.com/repos/${repoOwner}/${repoName}/contributors?per_page=${this.per_page}`
+      );
+      this.contributors = data;
+ 
+    } catch (err) {
+      console.log(err);
+    }
+  }
+ 
+  @Emit()
   created() {
     this.fetchCommits();
     this.fetchContributors();
-  },
+  }
 };
 </script>
 
@@ -136,9 +141,11 @@ export default {
 .commits {
   padding: 20px 50px;
 
+::v-deep .form-group{
   label {
     color: #fff;
   }
+}
 
   .commit {
     display: flex;

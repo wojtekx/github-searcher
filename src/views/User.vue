@@ -82,59 +82,61 @@
   </div>
 </template>
 
-<script>
-import axios from "axios";
-export default {
-  data() {
-    return {
-      result: {},
-      repos: [],
-      per_page: 4,
-      pageOptions: [
-        { text: "4", value: 4 },
-        { text: "8", value: 8 },
-        { text: "12", value: 12 },
-        { text: "16", value: 16 },
-      ],
-    };
-  },
-  watch: {
-    per_page() {
-      this.fetchUser();
-    },
-  },
-  methods: {
-    async fetchUser() {
-      const userId = this.$route.params.userId;
-      if (!userId) this.$router.push({ path: "/" });
-      try {
-        const { data } = await axios.get(
-          `https://api.github.com/user/${userId}`
-        );
-        this.result = data;
-        console.log(data);
+<script lang="ts">
+import { Component, Prop, Vue, Watch, Emit } from "vue-property-decorator";
 
-        this.fetchRepos(data.repos_url);
-      } catch (err) {
-        console.log(err);
-      }
-    },
-    async fetchRepos(url) {
-      try {
-        const { data } = await axios.get(url, {
-          params: { per_page: this.per_page },
-        });
-        this.repos = data;
-        console.log(data);
-      } catch (err) {
-        console.log(err);
-      }
-    },
-  },
+import axios from "axios";
+
+type OrderOptions = "desc" | "asc";
+type Opt<V = number> = { text: string; value: V };
+@Component
+export default class User extends Vue {
+  private result: Object = {};
+  private repos: any[] = [];
+  private per_page: number = 4;
+  private pageOptions: Opt[] = [
+    { text: "4", value: 4 },
+    { text: "8", value: 8 },
+    { text: "12", value: 12 },
+    { text: "16", value: 16 },
+  ];
+  @Watch("per_page")
+  perPageChanged(): void {
+    this.fetchUser();
+  }
+
+  @Emit()
+  async fetchUser(): Promise<void> {
+    const userId = this.$route.params.userId;
+    if (!userId) this.$router.push({ path: "/" });
+    try {
+      const { data } = await axios.get(`https://api.github.com/user/${userId}`);
+      this.result = data;
+      console.log(data);
+
+      this.fetchRepos(data.repos_url);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  @Emit()
+  async fetchRepos(url: string): Promise<void> {
+    try {
+      const { data } = await axios.get(url, {
+        params: { per_page: this.per_page },
+      });
+      this.repos = data;
+      console.log(data);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+  @Emit()
   created() {
     this.fetchUser();
-  },
-};
+  }
+}
 </script>
 
 <style scoped lang="scss">
